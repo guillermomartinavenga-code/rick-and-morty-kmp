@@ -1,7 +1,7 @@
 package com.example.rickandmorty
 
 import androidx.compose.runtime.Composable
-import com.example.rickandmorty.presentation.character.CharacterScreen
+import com.example.rickandmorty.presentation.navigation.NavigationHost
 import com.example.rickandmorty.presentation.theme.AppTheme
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
@@ -9,6 +9,6 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 @Preview
 fun App() {
     AppTheme {
-        CharacterScreen()
+        NavigationHost()
     }
 }
