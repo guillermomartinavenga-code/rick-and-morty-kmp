@@ -30,11 +30,10 @@ kotlin {
             implementation(compose.runtime)
             implementation(compose.foundation)
             implementation(compose.material3)
+            implementation(libs.compose.material.icons.extended)
             implementation(compose.ui)
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
-            implementation(libs.androidx.lifecycle.viewmodelCompose)
-            implementation(libs.androidx.lifecycle.runtimeCompose)
             implementation("io.ktor:ktor-client-core:2.3.8")
             implementation("io.ktor:ktor-client-content-negotiation:2.3.8")
             implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.8")
@@ -42,11 +41,13 @@ kotlin {
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
+            implementation(libs.kotlinx.coroutines.test)
         }
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutinesSwing)
             implementation("io.ktor:ktor-client-cio:2.3.8")
+            implementation("io.ktor:ktor-client-logging:2.3.8")
             implementation("ch.qos.logback:logback-classic:1.4.14")
         }
     }

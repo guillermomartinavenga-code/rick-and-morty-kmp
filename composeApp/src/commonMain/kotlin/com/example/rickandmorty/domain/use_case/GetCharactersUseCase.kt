@@ -14,6 +14,7 @@ class GetCharactersUseCase(private val repository: CharacterRepository) {
      * Executes the use case to get a list of characters.
      *
      * @return A list of [Character] objects.
+     * @throws Exception if the network request fails.
      */
     suspend operator fun invoke(): List<Character> = repository.getCharacters()
 }

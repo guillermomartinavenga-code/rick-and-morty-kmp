@@ -1,4 +1,4 @@
-package com.example.rickandmorty.presentation.character
+package com.example.rickandmorty.presentation.location
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -20,24 +20,24 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 /**
- * Composable function for displaying the character list screen.
+ * Composable function for displaying the location list screen.
  *
  * @param onBack A callback to navigate back to the previous screen.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CharacterScreen(onBack: () -> Unit) {
-    val viewModel = remember { CharacterViewModel() }
-    val characters by viewModel.characters.collectAsState()
+fun LocationScreen(onBack: () -> Unit) {
+    val viewModel = remember { LocationViewModel() }
+    val locations by viewModel.locations.collectAsState()
 
     LaunchedEffect(Unit) {
-        viewModel.loadCharacters()
+        viewModel.loadLocations()
     }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Characters List") },
+                title = { Text("Locations List") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
@@ -55,8 +55,8 @@ fun CharacterScreen(onBack: () -> Unit) {
                 .padding(horizontal = 10.dp)
                 .padding(vertical = 20.dp)
         ) {
-            items(characters) { character ->
-                CharacterRow(character = character)
+            items(locations) { location ->
+                LocationRow(location = location)
             }
         }
     }
