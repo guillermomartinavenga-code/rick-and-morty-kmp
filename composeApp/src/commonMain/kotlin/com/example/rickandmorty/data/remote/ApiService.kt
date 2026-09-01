@@ -23,8 +23,3 @@ interface ApiService {
      */
     suspend fun getEpisodes(): List<Episode>
 }
-
-/**
- * Creates a platform-specific instance of [ApiService].
- */
-expect fun createApiService(): ApiService
