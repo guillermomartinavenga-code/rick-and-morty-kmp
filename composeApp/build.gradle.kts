@@ -1,5 +1,11 @@
+import java.util.Properties
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
+val proxyProperties = Properties().apply {
+    val file = rootProject.file("proxy.local.properties")
+    if (file.exists()) load(file.inputStream())
+}
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -58,12 +64,20 @@ android {
     namespace = "com.example.rickandmorty"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
+    buildFeatures {
+        buildConfig = true
+    }
+
     defaultConfig {
         applicationId = "com.example.rickandmorty"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
         versionName = "1.0"
+        buildConfigField("String", "PROXY_HOST", "\"${proxyProperties.getProperty("PROXY_HOST", "10.0.2.2")}\"")
+        buildConfigField("String", "PROXY_PORT", "\"${proxyProperties.getProperty("PROXY_PORT", "8080")}\"")
+        buildConfigField("String", "PROXY_USER", "\"${proxyProperties.getProperty("PROXY_USER", "")}\"")
+        buildConfigField("String", "PROXY_PASSWORD", "\"${proxyProperties.getProperty("PROXY_PASSWORD", "")}\"")
     }
     packaging {
         resources {
