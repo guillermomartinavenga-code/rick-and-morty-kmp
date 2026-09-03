@@ -1,6 +1,5 @@
 package com.example.rickandmorty.di
 
-import com.example.rickandmorty.client.Client
 import com.example.rickandmorty.data.remote.ApiService
 import com.example.rickandmorty.data.remote.ApiServiceImpl
 import com.example.rickandmorty.data.remote.httpClientEngine
@@ -16,6 +15,7 @@ import com.example.rickandmorty.domain.use_case.GetLocationsUseCase
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.plugins.logging.LogLevel.INFO
 import io.ktor.client.plugins.HttpTimeout
+import rickandmorty.client.Client
 
 /**
  * A simple dependency injection module to provide instances of the required classes.

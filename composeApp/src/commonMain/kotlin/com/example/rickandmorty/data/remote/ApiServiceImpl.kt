@@ -1,9 +1,9 @@
 package com.example.rickandmorty.data.remote
 
-import com.example.rickandmorty.client.Client
 import com.example.rickandmorty.domain.model.Character
 import com.example.rickandmorty.domain.model.Episode
 import com.example.rickandmorty.domain.model.Location
+import rickandmorty.client.Client
 
 /**
  * Implementación única de [ApiService] para todas las plataformas.

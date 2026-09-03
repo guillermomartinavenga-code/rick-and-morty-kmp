@@ -99,7 +99,7 @@ compose.desktop {
 
 openapi3 {
     generators {
-        create("com.example.rickandmorty") {
+        create("rickandmorty") {
             inputSpec.set(file("src/commonMain/kotlin/com/example/rickandmorty/data/remote/openapi/rick-and-morty-openapi.json"))
         }
     }
