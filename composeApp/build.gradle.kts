@@ -8,7 +8,7 @@ plugins {
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.composeHotReload)
     alias(libs.plugins.kotlinxSerialization)
-    alias(libs.plugins.openapi2ktor)
+    alias(libs.plugins.kmpgen)
 }
 
 kotlin {
@@ -72,14 +72,8 @@ compose.desktop {
     }
 }
 
-openapi3 {
-    generators {
-        create("rickandmorty") {
-            inputSpec.set(file("src/commonMain/kotlin/com/example/rickandmorty/data/remote/openapi/rick-and-morty-openapi.json"))
-        }
+kmpgen {
+    spec(packageName = "com.example.rickandmorty.data.remote.kmpgen") {
+        specFile = file("src/commonMain/kotlin/com/example/rickandmorty/data/remote/openapi/rick-and-morty-openapi.json")
     }
-}
-
-tasks.matching { it.name == "prepareAndroidMainArtProfile" }.configureEach {
-    dependsOn("generateRickandmortyClients")
 }
