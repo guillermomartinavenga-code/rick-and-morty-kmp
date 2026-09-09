@@ -2,6 +2,7 @@ package com.example.rickandmorty.data.repository
 
 import com.example.rickandmorty.data.remote.ApiService
 import com.example.rickandmorty.domain.model.Character
+import com.example.rickandmorty.domain.model.Page
 import com.example.rickandmorty.domain.repository.CharacterRepository
 
 /**
@@ -12,9 +13,10 @@ import com.example.rickandmorty.domain.repository.CharacterRepository
  */
 class CharacterRepositoryImpl(private val apiService: ApiService) : CharacterRepository {
     /**
-     * Retrieves a list of characters from the remote service.
+     * Retrieves a page of characters from the remote service.
      *
-     * @return A list of [Character] objects.
+     * @param page The page number to retrieve.
+     * @return A [Page] of [Character] objects.
      */
-    override suspend fun getCharacters(): List<Character> = apiService.getCharacters()
+    override suspend fun getCharacters(page: Int): Page<Character> = apiService.getCharacters(page)
 }

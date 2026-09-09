@@ -9,9 +9,12 @@ import com.example.rickandmorty.data.repository.LocationRepositoryImpl
 import com.example.rickandmorty.domain.repository.CharacterRepository
 import com.example.rickandmorty.domain.repository.EpisodeRepository
 import com.example.rickandmorty.domain.repository.LocationRepository
-import com.example.rickandmorty.domain.use_case.GetCharactersUseCase
-import com.example.rickandmorty.domain.use_case.GetEpisodesUseCase
-import com.example.rickandmorty.domain.use_case.GetLocationsUseCase
+import com.example.rickandmorty.domain.use_case.api.GetCharactersUseCase
+import com.example.rickandmorty.domain.use_case.impl.GetCharactersUseCaseImpl
+import com.example.rickandmorty.domain.use_case.api.GetEpisodesUseCase
+import com.example.rickandmorty.domain.use_case.impl.GetEpisodesUseCaseImpl
+import com.example.rickandmorty.domain.use_case.api.GetLocationsUseCase
+import com.example.rickandmorty.domain.use_case.impl.GetLocationsUseCaseImpl
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.plugins.logging.LogLevel.INFO
 import io.ktor.client.plugins.HttpTimeout
@@ -54,14 +57,14 @@ object Module {
     }
 
     val getCharactersUseCase: GetCharactersUseCase by lazy {
-        GetCharactersUseCase(characterRepository)
+        GetCharactersUseCaseImpl(characterRepository)
     }
 
     val getLocationsUseCase: GetLocationsUseCase by lazy {
-        GetLocationsUseCase(locationRepository)
+        GetLocationsUseCaseImpl(locationRepository)
     }
 
     val getEpisodesUseCase: GetEpisodesUseCase by lazy {
-        GetEpisodesUseCase(episodeRepository)
+        GetEpisodesUseCaseImpl(episodeRepository)
     }
 }

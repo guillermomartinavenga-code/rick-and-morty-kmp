@@ -6,24 +6,25 @@ import com.example.rickandmorty.data.remote.kmpgen.api.EpisodeApi
 import com.example.rickandmorty.domain.model.Character
 import com.example.rickandmorty.domain.model.Episode
 import com.example.rickandmorty.domain.model.Location
+import com.example.rickandmorty.domain.model.Page
 
 class ApiServiceImpl : ApiService {
 
-    override suspend fun getCharacters(): List<Character> =
-        CharacterApi.getAllCharacters().fold(
+    override suspend fun getCharacters(page: Int): Page<Character> =
+        CharacterApi.getAllCharacters(page = page.toLong()).fold(
             ifLeft = { throw it },
-            ifRight = { response -> response.data.results.orEmpty().map { it.toDomain() } }
+            ifRight = { response -> response.data.toDomainPage() }
         )
 
-    override suspend fun getLocations(): List<Location> =
-        LocationApi.getAllLocations().fold(
+    override suspend fun getLocations(page: Int): Page<Location> =
+        LocationApi.getAllLocations(page = page.toLong()).fold(
             ifLeft = { throw it },
-            ifRight = { response -> response.data.results.orEmpty().map { it.toDomain() } }
+            ifRight = { response -> response.data.toDomainPage() }
         )
 
-    override suspend fun getEpisodes(): List<Episode> =
-        EpisodeApi.getAllEpisodes().fold(
+    override suspend fun getEpisodes(page: Int): Page<Episode> =
+        EpisodeApi.getAllEpisodes(page = page.toLong()).fold(
             ifLeft = { throw it },
-            ifRight = { response -> response.data.results.orEmpty().map { it.toDomain() } }
+            ifRight = { response -> response.data.toDomainPage() }
         )
 }

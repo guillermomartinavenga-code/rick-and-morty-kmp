@@ -3,9 +3,13 @@ package com.example.rickandmorty.data.remote
 import com.example.rickandmorty.domain.model.Character as DomainCharacter
 import com.example.rickandmorty.domain.model.Episode as DomainEpisode
 import com.example.rickandmorty.domain.model.Location as DomainLocation
+import com.example.rickandmorty.domain.model.Page
 import com.example.rickandmorty.data.remote.kmpgen.models.Character as CharacterApiModel
 import com.example.rickandmorty.data.remote.kmpgen.models.Episode as EpisodeApiModel
 import com.example.rickandmorty.data.remote.kmpgen.models.Location as LocationApiModel
+import com.example.rickandmorty.data.remote.kmpgen.models.Character200Response
+import com.example.rickandmorty.data.remote.kmpgen.models.Location200Response
+import com.example.rickandmorty.data.remote.kmpgen.models.Episode200Response
 import java.util.Locale.getDefault
 import kotlin.text.lowercase
 
@@ -31,6 +35,21 @@ fun EpisodeApiModel.toDomain() = DomainEpisode(
     name = name.orEmpty(),
     airDate = airDate.orEmpty(),
     episode = episode.orEmpty()
+)
+
+fun Character200Response.toDomainPage() = Page(
+    items = results.orEmpty().map { it.toDomain() },
+    hasNextPage = info?.next != null
+)
+
+fun Location200Response.toDomainPage() = Page(
+    items = results.orEmpty().map { it.toDomain() },
+    hasNextPage = info?.next != null
+)
+
+fun Episode200Response.toDomainPage() = Page(
+    items = results.orEmpty().map { it.toDomain() },
+    hasNextPage = info?.next != null
 )
 
 fun toLowerCaseAndCapital(text: String?): String {

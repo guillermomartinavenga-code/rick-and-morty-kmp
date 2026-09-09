@@ -1,6 +1,7 @@
 package com.example.rickandmorty.domain.repository
 
 import com.example.rickandmorty.domain.model.Character
+import com.example.rickandmorty.domain.model.Page
 
 /**
  * Defines the contract for accessing character data.
@@ -8,9 +9,10 @@ import com.example.rickandmorty.domain.model.Character
  */
 interface CharacterRepository {
     /**
-     * Retrieves a list of characters.
+     * Retrieves a page of characters.
      *
-     * @return A list of [Character] objects.
+     * @param page The page number to retrieve.
+     * @return A [Page] of [Character] objects.
      */
-    suspend fun getCharacters(): List<Character>
+    suspend fun getCharacters(page: Int): Page<Character>
 }

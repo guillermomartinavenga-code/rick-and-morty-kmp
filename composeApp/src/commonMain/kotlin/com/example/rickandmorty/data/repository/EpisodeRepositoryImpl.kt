@@ -2,6 +2,7 @@ package com.example.rickandmorty.data.repository
 
 import com.example.rickandmorty.data.remote.ApiService
 import com.example.rickandmorty.domain.model.Episode
+import com.example.rickandmorty.domain.model.Page
 import com.example.rickandmorty.domain.repository.EpisodeRepository
 
 /**
@@ -12,9 +13,10 @@ import com.example.rickandmorty.domain.repository.EpisodeRepository
  */
 class EpisodeRepositoryImpl(private val apiService: ApiService) : EpisodeRepository {
     /**
-     * Retrieves a list of episodes from the remote service.
+     * Retrieves a page of episodes from the remote service.
      *
-     * @return A list of [Episode] objects.
+     * @param page The page number to retrieve.
+     * @return A [Page] of [Episode] objects.
      */
-    override suspend fun getEpisodes(): List<Episode> = apiService.getEpisodes()
+    override suspend fun getEpisodes(page: Int): Page<Episode> = apiService.getEpisodes(page)
 }
