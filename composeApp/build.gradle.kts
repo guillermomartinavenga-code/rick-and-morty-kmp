@@ -9,6 +9,7 @@ plugins {
     alias(libs.plugins.composeHotReload)
     alias(libs.plugins.kotlinxSerialization)
     alias(libs.plugins.kmpgen)
+    alias(libs.plugins.kover)
 }
 
 kotlin {
@@ -48,8 +49,12 @@ kotlin {
             implementation(libs.kotlinx.serialization.json)
         }
         commonTest.dependencies {
-            implementation(libs.kotlin.test)
+            implementation(libs.kotlin.test.junit5)
+            implementation(libs.junit.params)
             implementation(libs.kotlinx.coroutines.test)
+            implementation(libs.mockk)
+            runtimeOnly(libs.junit.engine)
+            runtimeOnly(libs.junit.platform.launcher)
         }
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
@@ -75,5 +80,28 @@ compose.desktop {
 kmpgen {
     spec(packageName = "com.example.rickandmorty.data.remote.kmpgen") {
         specFile = file("src/commonMain/kotlin/com/example/rickandmorty/data/remote/openapi/rick-and-morty-openapi.json")
+    }
+}
+
+tasks.withType<Test>().configureEach {
+    useJUnitPlatform()
+}
+
+kover {
+    reports {
+        total {
+            html {
+                onCheck = true // Generates the report when you run ./gradlew check
+            }
+            xml {
+                onCheck = true
+            }
+        }
+        filters {
+            // Exclude the kmpgen-generated OpenAPI client (not hand-written code)
+            excludes {
+                packages("com.example.rickandmorty.data.remote.kmpgen")
+            }
+        }
     }
 }
