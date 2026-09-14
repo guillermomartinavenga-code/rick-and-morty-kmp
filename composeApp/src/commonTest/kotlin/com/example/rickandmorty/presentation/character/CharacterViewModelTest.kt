@@ -1,10 +1,23 @@
 package com.example.rickandmorty.presentation.character
 
-import com.example.rickandmorty.di.Module
 import com.example.rickandmorty.domain.model.Character
+import com.example.rickandmorty.domain.model.Page
+import com.example.rickandmorty.domain.model.Lce
+import com.example.rickandmorty.domain.use_case.api.GetCharactersUseCase
+import com.example.rickandmorty.testutil.createCharacter
+import com.example.rickandmorty.testutil.defaultCharacter
+import io.mockk.MockKAnnotations
+import io.mockk.every
+import io.mockk.impl.annotations.MockK
+import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -13,6 +26,9 @@ import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * Unit tests for the [CharacterViewModel].
@@ -20,21 +36,36 @@ import kotlin.test.assertEquals
 @ExperimentalCoroutinesApi
 class CharacterViewModelTest {
 
+    @MockK
+    lateinit var mockUseCase: GetCharactersUseCase
+
     private val testDispatcher = StandardTestDispatcher()
 
     @BeforeTest
     fun setup() {
         Dispatchers.setMain(testDispatcher)
+        MockKAnnotations.init(this)
+    }
+
+    @AfterTest
+    fun tearDown() {
+        Dispatchers.resetMain()
     }
 
     @Test
-    fun `loadCharacters should update characters state`() = runTest {
+    fun `loadCharacters should update characters state using fake`() = runTest {
         // Given
-        val characters = listOf(
-            Character(1, "Rick Sanchez", "Human", "Male", "Earth (C-137)", "Citadel of Ricks", "image_url")
-        )
-        val useCase = Module.getCharactersUseCase
-        val viewModel = CharacterViewModel()
+        val expectedCharacters = listOf(defaultCharacter)
+
+        val expectedPage = Page(items =  expectedCharacters, hasNextPage = true)
+
+        val fakeUseCase = object : GetCharactersUseCase {
+            override fun invoke(page: Int): Flow<Lce<Page<Character>>> {
+                return flowOf(Lce.Content(expectedPage))
+            }
+        }
+
+        val viewModel = CharacterViewModel(getCharactersUseCase = fakeUseCase)
 
         // When
         viewModel.loadCharacters()
@@ -42,13 +73,148 @@ class CharacterViewModelTest {
 
         // Then
         val result = viewModel.characters.first()
-        // Note: In a real test, we would mock the use case to return the expected characters.
-        // For this example, we just verify that the list is not empty.
-        assertEquals(true, result.isNotEmpty())
+
+        assertEquals(expectedCharacters, result)
     }
 
-    @AfterTest
-    fun tearDown() {
-        Dispatchers.resetMain()
+    @Test
+    fun `loadCharacters should update characters state using mock`() = runTest {
+        // Given
+        val expectedCharacters = listOf(defaultCharacter)
+
+        val expectedPage = Page(items =  expectedCharacters, hasNextPage = true)
+
+        every { mockUseCase.invoke(page = 1) } returns flowOf(Lce.Content(expectedPage))
+
+        val viewModel = CharacterViewModel(getCharactersUseCase = mockUseCase)
+
+        // When
+        viewModel.loadCharacters()
+        testScheduler.advanceUntilIdle() // Allow the coroutine to complete
+
+        // Then
+        val result = viewModel.characters.first()
+
+        assertEquals(expectedCharacters, result)
+
+        verify(exactly = 1) { mockUseCase.invoke(page = 1) }
+    }
+
+    @Test
+    fun `loadNextPageIfNeeded should accumulate pages and stop once hasNextPage is false`() = runTest {
+        // Given
+        val firstPageCharacters = listOf(defaultCharacter)
+        val secondPageCharacters = listOf(createCharacter(id = 2, name = "Morty Smith"))
+        every { mockUseCase.invoke(page = 1) } returns flowOf(
+            Lce.Content(Page(items = firstPageCharacters, hasNextPage = true))
+        )
+        every { mockUseCase.invoke(page = 2) } returns flowOf(
+            Lce.Content(Page(items = secondPageCharacters, hasNextPage = false))
+        )
+
+        val viewModel = CharacterViewModel(getCharactersUseCase = mockUseCase)
+
+        // When
+        viewModel.loadNextPageIfNeeded()
+        viewModel.loadNextPageIfNeeded()
+        viewModel.loadNextPageIfNeeded() // endReached: should be a no-op
+
+        // Then
+        assertEquals(firstPageCharacters + secondPageCharacters, viewModel.characters.first())
+        verify(exactly = 1) { mockUseCase.invoke(page = 1) }
+        verify(exactly = 1) { mockUseCase.invoke(page = 2) }
+        verify(exactly = 0) { mockUseCase.invoke(page = 3) }
+    }
+
+    @Test
+    fun `loadNextPageIfNeeded should set errorMessage and leave characters untouched when the use case emits an error`() = runTest {
+        // Given
+        every { mockUseCase.invoke(page = 1) } returns flowOf(Lce.Error(RuntimeException("boom")))
+
+        val viewModel = CharacterViewModel(getCharactersUseCase = mockUseCase)
+
+        // When
+        viewModel.loadNextPageIfNeeded()
+
+        // Then
+        assertEquals(emptyList(), viewModel.characters.first())
+        assertEquals("The next page of characters could not be loaded.", viewModel.errorMessage.first())
+        assertEquals(false, viewModel.isLoadingNextPage.first())
+    }
+
+    @Test
+    fun `loadNextPageIfNeeded should be a no-op while a page is already being fetched`() = runTest {
+        // Given
+        val page = Page(items = listOf(defaultCharacter), hasNextPage = true)
+        every { mockUseCase.invoke(page = 1) } returns flow {
+            emit(Lce.Loading)
+            delay(1_000.milliseconds)
+            emit(Lce.Content(page))
+        }
+
+        val viewModel = CharacterViewModel(getCharactersUseCase = mockUseCase)
+
+        // When
+        val firstCall = launch { viewModel.loadNextPageIfNeeded() }
+        val secondCall = launch { viewModel.loadNextPageIfNeeded() }
+        testScheduler.advanceUntilIdle()
+        firstCall.join()
+        secondCall.join()
+
+        // Then
+        verify(exactly = 1) { mockUseCase.invoke(page = 1) }
+        assertNull(viewModel.errorMessage.first())
+    }
+
+    @Test
+    fun `loadNextPageIfNeeded should keep isLoadingNextPage true until the minimum loading duration elapses`() = runTest {
+        // Given: a use case that resolves immediately, with no delay of its own
+        every { mockUseCase.invoke(page = 1) } returns flowOf(
+            Lce.Content(Page(items = listOf(defaultCharacter), hasNextPage = true))
+        )
+
+        val viewModel = CharacterViewModel(getCharactersUseCase = mockUseCase)
+
+        // When
+        val job = launch { viewModel.loadNextPageIfNeeded() }
+        testScheduler.runCurrent()
+
+        // Then: still loading well before the 400ms minimum has elapsed
+        testScheduler.advanceTimeBy(200.milliseconds)
+        testScheduler.runCurrent()
+        assertEquals(true, viewModel.isLoadingNextPage.first())
+
+        // And: no longer loading once the minimum has elapsed
+        testScheduler.advanceTimeBy(250.milliseconds)
+        testScheduler.runCurrent()
+        job.join()
+
+        assertEquals(false, viewModel.isLoadingNextPage.first())
+        assertEquals(listOf(defaultCharacter), viewModel.characters.first())
+    }
+
+    @Test
+    fun `loadNextPageIfNeeded should propagate CancellationException without setting an error message`() = runTest {
+        // Given: a use case that is still in flight when the caller cancels
+        every { mockUseCase.invoke(page = 1) } returns flow {
+            emit(Lce.Loading)
+            delay(1_000.milliseconds)
+            emit(Lce.Content(Page(items = listOf(defaultCharacter), hasNextPage = true)))
+        }
+
+        val viewModel = CharacterViewModel(getCharactersUseCase = mockUseCase)
+
+        // When
+        val job = launch { viewModel.loadNextPageIfNeeded() }
+        testScheduler.runCurrent() // let it reach the in-flight use case call
+        job.cancel()
+        testScheduler.advanceUntilIdle() // let the cancellation propagate and finally{} run
+        job.join()
+
+        // Then
+        assertTrue(job.isCancelled)
+        assertNull(viewModel.errorMessage.first())
+        assertEquals(emptyList(), viewModel.characters.first())
+        assertEquals(false, viewModel.isLoadingNextPage.first())
     }
 }
