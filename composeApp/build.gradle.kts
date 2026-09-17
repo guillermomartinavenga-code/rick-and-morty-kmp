@@ -28,19 +28,26 @@ kotlin {
     }
     
     jvm()
+
+    iosArm64 {
+        binaries.framework {
+            baseName = "ComposeApp"
+            isStatic = true
+        }
+    }
     
     sourceSets {
         androidMain.dependencies {
             implementation(libs.ktor.client.okhttp)
         }
         commonMain.dependencies {
-            implementation(compose.runtime)
-            implementation(compose.foundation)
-            implementation(compose.material3)
+            implementation(libs.compose.runtime)
+            implementation(libs.compose.foundation)
+            implementation(libs.compose.material3)
             implementation(libs.compose.material.icons.extended)
-            implementation(compose.ui)
-            implementation(compose.components.resources)
-            implementation(compose.components.uiToolingPreview)
+            implementation(libs.compose.ui)
+            implementation(libs.compose.ui.toolingPreview)
+            implementation(libs.compose.components.resources)
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)
@@ -48,19 +55,22 @@ kotlin {
             implementation(libs.ktor.client.logging)
             implementation(libs.kotlinx.serialization.json)
         }
-        commonTest.dependencies {
-            implementation(libs.kotlin.test.junit5)
-            implementation(libs.junit.params)
-            implementation(libs.kotlinx.coroutines.test)
-            implementation(libs.mockk)
-            runtimeOnly(libs.junit.engine)
-            runtimeOnly(libs.junit.platform.launcher)
+        iosMain.dependencies {
+            implementation(libs.ktor.client.darwin)
         }
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutinesSwing)
             implementation("ch.qos.logback:logback-classic:1.4.14")
             implementation(libs.ktor.client.cio)
+        }
+        jvmTest.dependencies {
+            implementation(libs.kotlin.test.junit5)
+            implementation(libs.junit.params)
+            implementation(libs.kotlinx.coroutines.test)
+            implementation(libs.mockk)
+            runtimeOnly(libs.junit.engine)
+            runtimeOnly(libs.junit.platform.launcher)
         }
     }
 }
