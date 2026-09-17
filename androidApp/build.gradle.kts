@@ -47,7 +47,8 @@ android {
 dependencies {
     implementation(projects.composeApp)
     implementation(libs.androidx.activity.compose)
-    debugImplementation(compose.uiTooling)
+    debugImplementation(libs.compose.ui.toolingPreview)
 
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
+
+    coreLibraryDesugaring(libs.desugar.jdk.libs)
 }
