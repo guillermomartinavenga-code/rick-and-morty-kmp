@@ -10,8 +10,6 @@ import com.example.rickandmorty.data.remote.kmpgen.models.Location as LocationAp
 import com.example.rickandmorty.data.remote.kmpgen.models.Character200Response
 import com.example.rickandmorty.data.remote.kmpgen.models.Location200Response
 import com.example.rickandmorty.data.remote.kmpgen.models.Episode200Response
-import java.util.Locale.getDefault
-import kotlin.text.lowercase
 
 fun CharacterApiModel.toDomain() = DomainCharacter(
     id = id?.toInt() ?: 0,
@@ -53,7 +51,7 @@ fun Episode200Response.toDomainPage() = Page(
 )
 
 fun toLowerCaseAndCapital(text: String?): String {
-    return text?.lowercase(getDefault())?.replaceFirstChar {
-        if (it.isLowerCase()) it.titlecase(getDefault()) else it.toString()
+    return text?.lowercase()?.replaceFirstChar {
+        if (it.isLowerCase()) it.titlecase() else it.toString()
     } ?: ""
 }
