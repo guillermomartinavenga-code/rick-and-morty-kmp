@@ -1,63 +1,70 @@
 # Rick and Morty KMP Encyclopedia
 
-This is a Kotlin Multiplatform (KMP) project that demonstrates how to build an application targeting **Android** and **Desktop (JVM for Linux, macOS, and Windows)** with a shared codebase.
+A Kotlin Multiplatform (KMP) encyclopedia app for the Rick and Morty universe, targeting **Android**, **Desktop (JVM for Linux, macOS, and Windows)**, and **iOS** from a single shared codebase. It fetches data from the public [Rick and Morty API](https://rickandmortyapi.com/) and displays Characters, Locations, and Episodes.
 
-The project serves as a practical example of KMP principles, including code sharing, dependency injection, and platform-specific implementations using `expect` and `actual` declarations.
+This is a personal learning/practice project used to demonstrate a set of KMP engineering objectives — networking, multiplatform build configuration, testing, and more.
 
 ## Project Overview
 
-The application is a simple encyclopedia for the Rick and Morty universe. It fetches data from the public [Rick and Morty API](https://rickandmortyapi.com/) and displays it in three main sections: Characters, Locations, and Episodes.
-
 The core goals of this project are to showcase:
 
-- **Shared Logic:** The majority of the code, including business logic (use cases, repositories) and presentation logic (ViewModels), resides in the `commonMain` source set and is shared across Android and Desktop.
-- **Platform-Specific Implementations:** The use of `expect` and `actual` declarations for the `ApiService`. The `expect` keyword in `commonMain` defines a contract, while `actual` in `androidMain` and `jvmMain` provides the concrete implementation (using Retrofit for Android and Ktor for Desktop).
-- **Clean Architecture:** The project follows a modern, layered architecture (`data`, `domain`, `presentation`) for better separation of concerns and testability.
-- **Declarative UI:** The entire user interface is built with **Jetpack Compose Multiplatform**, allowing the UI to be shared across platforms with minimal platform-specific adjustments.
+- **Shared Logic:** business logic (use cases, repositories) and presentation logic (ViewModels) live in `commonMain` and are shared across Android, Desktop, and iOS.
+- **Clean Architecture:** a layered architecture (`data` / `domain` / `presentation`) + MVVM, with data flowing `ApiService → Repository → UseCase → ViewModel → Compose Screen` for each feature (Characters, Locations, Episodes).
+- **Generated networking:** the HTTP layer is generated from an OpenAPI spec via the `com.kroegerama.openapi-kmp-gen` Gradle plugin, producing Ktor-based clients/DTOs. Each platform supplies its own Ktor engine (`ktor-client-okhttp` on Android, `ktor-client-cio` on JVM/Desktop, `ktor-client-darwin` on iOS).
+- **Platform-Specific Implementations:** `expect`/`actual` declarations where platform code is unavoidable — most notably a small `Logger` abstraction (`android.util.Log` on Android, SLF4J on JVM, `NSLog` on iOS).
+- **Declarative UI:** the entire UI is built with **Jetpack Compose Multiplatform**, shared across all three platforms.
 
 ## Features & API Use Cases
 
 The application consumes the public [Rick and Morty API](https://rickandmortyapi.com/api) and implements the following use cases:
 
-- **Characters (`/character` endpoint):**
-  - **UC-C1:** Fetches and displays a list of all characters.
-- **Locations (`/location` endpoint):**
-  - **UC-L1:** Fetches and displays a list of all locations.
-- **Episodes (`/episode` endpoint):**
-  - **UC-E1:** Fetches and displays a list of all episodes.
+- **Characters (`/character` endpoint):** fetches and displays a paginated list of all characters.
+- **Locations (`/location` endpoint):** fetches and displays a paginated list of all locations.
+- **Episodes (`/episode` endpoint):** fetches and displays a paginated list of all episodes.
 
-The UI consists of a main screen with three buttons to navigate to each respective section. Each section screen displays the data in a list and includes a top app bar with a title and a functional back button.
+The UI consists of a main screen with three buttons to navigate to each respective section. Each section screen displays the data in a list with incremental "load next page" pagination, and includes a top app bar with a title and a functional back button.
+
+## Module Structure
+
+- **`composeApp`** — a Kotlin Multiplatform *library* module (`android()`, `jvm()`, `iosArm64()` targets) containing essentially all app code: shared business logic + Compose UI (`commonMain`), and platform code (`androidMain`, `jvmMain`, `iosMain`, `jvmTest`).
+- **`androidApp`** — a thin `com.android.application` module that depends on `composeApp` and produces the installable Android APK. This is the module to target for Android builds.
+- **`iosApp`** — an Xcode project/workspace that links `composeApp`'s `ComposeApp.framework` and hosts the shared Compose UI from Swift. Building and running it requires a macOS host with Xcode.
+- Desktop distribution (`compose.desktop`) is configured directly inside `composeApp/build.gradle.kts`, since JVM is a target of that same module.
 
 ## Unit Testing
 
-The project includes unit tests for the shared business logic located in the `commonTest` source set. The tests cover:
+Unit tests for the shared business logic live in `composeApp/src/jvmTest` (JVM-executed via JUnit5, not `commonTest` — Kotlin/Native targets can't resolve the JUnit5/MockK test dependencies used here). The tests cover:
 
-- **Use Cases:** Verifying that the use cases correctly interact with their repositories.
-- **Repositories:** Ensuring the repositories correctly call the `ApiService`.
-- **ViewModels:** Confirming that the ViewModels update their state correctly after data is loaded.
+- **Use Cases:** verifying correct interaction with their repositories.
+- **Repositories:** ensuring correct calls into `ApiService`.
+- **ViewModels:** confirming state updates correctly after data is loaded, including pagination and loading-state timing.
 
-To run all unit tests, execute the following Gradle task from the terminal:
+To run all unit tests:
 
 ```shell
 ./gradlew :composeApp:jvmTest
 ```
 
+To run a single test class or method:
+
+```shell
+./gradlew :composeApp:jvmTest --tests "com.example.rickandmorty.presentation.character.CharacterViewModelTest"
+```
+
 ## Build and Run Android Application
 
-To build and run the development version of the Android app, use the `composeApp` run configuration from the run widget in your IDE’s toolbar or build it directly from the terminal:
+Build and install the debug APK via the `androidApp` module:
 
 - On macOS/Linux:
   ```shell
-  ./gradlew :composeApp:assembleDebug
+  ./gradlew :androidApp:assembleDebug
   ```
 - On Windows:
   ```shell
-  .\gradlew.bat :composeApp:assembleDebug
+  .\gradlew.bat :androidApp:assembleDebug
   ```
 
 ## Build and Run Desktop (JVM) Application
-
-To build and run the development version of the desktop app, use the `composeApp` run configuration from the run widget in your IDE’s toolbar or run it directly from the terminal:
 
 - On macOS/Linux:
   ```shell
@@ -67,6 +74,22 @@ To build and run the development version of the desktop app, use the `composeApp
   ```shell
   .\gradlew.bat :composeApp:run
   ```
+
+## Build and Run iOS Application
+
+The shared module's `iosArm64` (physical device) target compiles on any host:
+
+```shell
+./gradlew :composeApp:compileKotlinIosArm64
+```
+
+Linking the `ComposeApp.framework` and running the app on a physical iPhone requires a macOS host with Xcode, since the final link step needs Apple's `ld64` linker — this is unconditionally skipped on Linux/Windows:
+
+```shell
+./gradlew :composeApp:linkDebugFrameworkIosArm64
+```
+
+From there, open `iosApp/iosApp.xcodeproj` in Xcode, select a physical device, and run. Only the `iosArm64` (physical device) target is configured — there is no simulator target in this project.
 
 ---
 
