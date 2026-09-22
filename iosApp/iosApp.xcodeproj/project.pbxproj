@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		4FCD9896306312B1006BF788 /* ComposeApp in Frameworks */ = {isa = PBXBuildFile; productRef = 4FCD9895306312B1006BF788 /* ComposeApp */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		4F3B8170305DC9B60080F448 /* iosApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iosApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -36,6 +40,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4FCD9896306312B1006BF788 /* ComposeApp in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -79,6 +84,7 @@
 			);
 			name = iosApp;
 			packageProductDependencies = (
+				4FCD9895306312B1006BF788 /* ComposeApp */,
 			);
 			productName = iosApp;
 			productReference = 4F3B8170305DC9B60080F448 /* iosApp.app */;
@@ -108,6 +114,9 @@
 			);
 			mainGroup = 4F3B8167305DC9B60080F448;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				4FCD9894306312B1006BF788 /* XCLocalSwiftPackageReference "../ComposeAppPackage" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 4F3B8171305DC9B60080F448 /* Products */;
 			projectDirPath = "";
@@ -145,7 +154,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "cd \"$SRCROOT/..\"\n./gradlew :composeApp:embedAndSignAppleFrameworkForXcode\n";
+			shellScript = "cd \"$SRCROOT/..\"\n./gradlew :composeApp:assembleComposeAppDebugXCFramework\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -367,6 +376,20 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		4FCD9894306312B1006BF788 /* XCLocalSwiftPackageReference "../ComposeAppPackage" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../ComposeAppPackage;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		4FCD9895306312B1006BF788 /* ComposeApp */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = ComposeApp;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 4F3B8168305DC9B60080F448 /* Project object */;
 }
