@@ -26,9 +26,9 @@ The UI consists of a main screen with three buttons to navigate to each respecti
 
 ## Module Structure
 
-- **`composeApp`** — a Kotlin Multiplatform *library* module (`android()`, `jvm()`, `iosArm64()` targets) containing essentially all app code: shared business logic + Compose UI (`commonMain`), and platform code (`androidMain`, `jvmMain`, `iosMain`, `jvmTest`).
-- **`androidApp`** — a thin `com.android.application` module that depends on `composeApp` and produces the installable Android APK. This is the module to target for Android builds.
-- **`iosApp`** — an Xcode project/workspace that links `composeApp`'s `ComposeApp.framework` and hosts the shared Compose UI from Swift. Building and running it requires a macOS host with Xcode.
+- **`composeApp`** — a Kotlin Multiplatform *library* module (`android()`, `jvm()`, `iosArm64()` targets) containing essentially all app code: shared business logic + Compose UI (`commonMain`), and platform code (`androidMain`, `jvmMain`, `iosMain`, `jvmTest`). It also publishes `jvm`/`android`/`iosArm64` artifacts to Maven Local and assembles a local `.xcframework` for iOS — see "Publishing composeApp" below.
+- **`androidApp`** — a thin `com.android.application` module that produces the installable Android APK. This is the module to target for Android builds.
+- **`iosApp`** — an Xcode project that hosts the shared Compose UI from Swift. It consumes `composeApp` via a local Swift Package (`ComposeAppPackage/`) wrapping a locally-built `.xcframework`, rather than a direct Gradle build-phase embed. Building and running it requires a macOS host with Xcode.
 - Desktop distribution (`compose.desktop`) is configured directly inside `composeApp/build.gradle.kts`, since JVM is a target of that same module.
 
 ## Unit Testing
@@ -83,13 +83,23 @@ The shared module's `iosArm64` (physical device) target compiles on any host:
 ./gradlew :composeApp:compileKotlinIosArm64
 ```
 
-Linking the `ComposeApp.framework` and running the app on a physical iPhone requires a macOS host with Xcode, since the final link step needs Apple's `ld64` linker — this is unconditionally skipped on Linux/Windows:
+Assembling the local `.xcframework` that `iosApp` consumes requires a macOS host with Xcode, since the final link step needs Apple's `ld64` linker — this is unconditionally skipped on Linux/Windows:
 
 ```shell
-./gradlew :composeApp:linkDebugFrameworkIosArm64
+./gradlew :composeApp:assembleComposeAppDebugXCFramework
 ```
 
-From there, open `iosApp/iosApp.xcodeproj` in Xcode, select a physical device, and run. Only the `iosArm64` (physical device) target is configured — there is no simulator target in this project.
+From there, open `iosApp/iosApp.xcodeproj` in Xcode, select a physical device, and run — Xcode's build phase re-runs the command above automatically before each build, and `iosApp`'s local Swift Package (`ComposeAppPackage/`) picks up the resulting `.xcframework`. Only the `iosArm64` (physical device) target is configured — there is no simulator target in this project.
+
+## Publishing `composeApp` (Maven Local)
+
+`composeApp` also publishes its `jvm`/`android`/`iosArm64` artifacts to your local Maven repository (`~/.m2`):
+
+```shell
+./gradlew publishToMavenLocal
+```
+
+This isn't required for any of the run commands above — it exists to demonstrate artifact-based publishing for a Kotlin Multiplatform library.
 
 ---
 
