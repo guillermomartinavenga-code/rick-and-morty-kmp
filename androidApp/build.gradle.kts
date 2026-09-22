@@ -45,10 +45,8 @@ android {
 }
 
 dependencies {
-    implementation(projects.composeApp)
+    implementation("com.example.rickandmorty:composeApp:0.1.0")
     implementation(libs.androidx.activity.compose)
     debugImplementation(libs.compose.ui.toolingPreview)
-
-
     coreLibraryDesugaring(libs.desugar.jdk.libs)
 }

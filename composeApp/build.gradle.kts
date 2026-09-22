@@ -10,7 +10,12 @@ plugins {
     alias(libs.plugins.kotlinxSerialization)
     alias(libs.plugins.kmpgen)
     alias(libs.plugins.kover)
+
+    id("maven-publish")
 }
+
+group = "com.example.rickandmorty"
+version = "0.1.0"
 
 kotlin {
     android {
@@ -26,7 +31,7 @@ kotlin {
             enable = true
         }
     }
-    
+
     jvm()
 
     iosArm64 {
@@ -35,7 +40,7 @@ kotlin {
             isStatic = true
         }
     }
-    
+
     sourceSets {
         androidMain.dependencies {
             implementation(libs.ktor.client.okhttp)
