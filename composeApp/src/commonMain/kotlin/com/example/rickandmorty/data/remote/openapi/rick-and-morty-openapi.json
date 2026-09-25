@@ -1,0 +1,383 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Rick and Morty API",
+    "description": "API REST que expone información de personajes, ubicaciones y episodios del universo de Rick and Morty. Todas las solicitudes son GET y las respuestas se devuelven en formato JSON.",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Rick and Morty API",
+      "url": "https://rickandmortyapi.com"
+    },
+    "license": {
+      "name": "Uso libre / API pública",
+      "url": "https://rickandmortyapi.com/about"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://rickandmortyapi.com/api",
+      "description": "Servidor base de la API"
+    }
+  ],
+  "tags": [
+    { "name": "Info", "description": "Información general de la API" },
+    { "name": "Character", "description": "Operaciones relacionadas con los personajes" },
+    { "name": "Location", "description": "Operaciones relacionadas con las ubicaciones" },
+    { "name": "Episode", "description": "Operaciones relacionadas con los episodios" }
+  ],
+  "paths": {
+    "/": {
+      "get": {
+        "tags": ["Info"],
+        "summary": "Obtener recursos disponibles",
+        "description": "Devuelve las URLs base de los recursos disponibles en la API (characters, locations, episodes).",
+        "operationId": "getApiInfo",
+        "responses": {
+          "200": {
+            "description": "Listado de recursos disponibles",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "characters": { "type": "string", "format": "uri", "example": "https://rickandmortyapi.com/api/character" },
+                    "locations": { "type": "string", "format": "uri", "example": "https://rickandmortyapi.com/api/location" },
+                    "episodes": { "type": "string", "format": "uri", "example": "https://rickandmortyapi.com/api/episode" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/character": {
+      "get": {
+        "tags": ["Character"],
+        "summary": "Obtener todos los personajes",
+        "description": "Devuelve una lista paginada de personajes. Se puede filtrar mediante parámetros de consulta.",
+        "operationId": "getAllCharacters",
+        "parameters": [
+          { "name": "page", "in": "query", "description": "Número de página a consultar.", "required": false, "schema": { "type": "integer", "default": 1 } },
+          { "name": "name", "in": "query", "description": "Filtrar por nombre del personaje.", "required": false, "schema": { "type": "string" } },
+          { "name": "status", "in": "query", "description": "Filtrar por estado del personaje.", "required": false, "schema": { "type": "string", "enum": ["alive", "dead", "unknown"] } },
+          { "name": "species", "in": "query", "description": "Filtrar por especie del personaje.", "required": false, "schema": { "type": "string" } },
+          { "name": "type", "in": "query", "description": "Filtrar por tipo o subespecie del personaje.", "required": false, "schema": { "type": "string" } },
+          { "name": "gender", "in": "query", "description": "Filtrar por género del personaje.", "required": false, "schema": { "type": "string", "enum": ["female", "male", "genderless", "unknown"] } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Listado paginado de personajes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "info": { "$ref": "#/components/schemas/Info" },
+                    "results": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/Character" }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/character/{id}": {
+      "get": {
+        "tags": ["Character"],
+        "summary": "Obtener un único personaje",
+        "description": "Devuelve un único personaje según su id.",
+        "operationId": "getCharacterById",
+        "parameters": [
+          { "name": "id", "in": "path", "description": "Id del personaje.", "required": true, "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Personaje encontrado",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Character" } }
+            }
+          },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/character/{ids}": {
+      "get": {
+        "tags": ["Character"],
+        "summary": "Obtener múltiples personajes",
+        "description": "Devuelve varios personajes a partir de una lista de ids separados por coma, por ejemplo: /character/1,2,3",
+        "operationId": "getMultipleCharacters",
+        "parameters": [
+          { "name": "ids", "in": "path", "description": "Lista de ids separados por coma. Ej: 1,2,3", "required": true, "schema": { "type": "string" }, "example": "1,183" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Listado de personajes encontrados",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Character" }
+                }
+              }
+            }
+          },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/location": {
+      "get": {
+        "tags": ["Location"],
+        "summary": "Obtener todas las ubicaciones",
+        "description": "Devuelve una lista paginada de ubicaciones. Se puede filtrar mediante parámetros de consulta.",
+        "operationId": "getAllLocations",
+        "parameters": [
+          { "name": "page", "in": "query", "description": "Número de página a consultar.", "required": false, "schema": { "type": "integer", "default": 1 } },
+          { "name": "name", "in": "query", "description": "Filtrar por nombre de la ubicación.", "required": false, "schema": { "type": "string" } },
+          { "name": "type", "in": "query", "description": "Filtrar por tipo de ubicación.", "required": false, "schema": { "type": "string" } },
+          { "name": "dimension", "in": "query", "description": "Filtrar por dimensión de la ubicación.", "required": false, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Listado paginado de ubicaciones",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "info": { "$ref": "#/components/schemas/Info" },
+                    "results": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/Location" }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/location/{id}": {
+      "get": {
+        "tags": ["Location"],
+        "summary": "Obtener una única ubicación",
+        "description": "Devuelve una única ubicación según su id.",
+        "operationId": "getLocationById",
+        "parameters": [
+          { "name": "id", "in": "path", "description": "Id de la ubicación.", "required": true, "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Ubicación encontrada",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Location" } }
+            }
+          },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/location/{ids}": {
+      "get": {
+        "tags": ["Location"],
+        "summary": "Obtener múltiples ubicaciones",
+        "description": "Devuelve varias ubicaciones a partir de una lista de ids separados por coma, por ejemplo: /location/1,2,3",
+        "operationId": "getMultipleLocations",
+        "parameters": [
+          { "name": "ids", "in": "path", "description": "Lista de ids separados por coma. Ej: 3,21", "required": true, "schema": { "type": "string" }, "example": "3,21" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Listado de ubicaciones encontradas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Location" }
+                }
+              }
+            }
+          },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/episode": {
+      "get": {
+        "tags": ["Episode"],
+        "summary": "Obtener todos los episodios",
+        "description": "Devuelve una lista paginada de episodios. Se puede filtrar mediante parámetros de consulta.",
+        "operationId": "getAllEpisodes",
+        "parameters": [
+          { "name": "page", "in": "query", "description": "Número de página a consultar.", "required": false, "schema": { "type": "integer", "default": 1 } },
+          { "name": "name", "in": "query", "description": "Filtrar por nombre del episodio.", "required": false, "schema": { "type": "string" } },
+          { "name": "episode", "in": "query", "description": "Filtrar por código del episodio (ej. S01E01).", "required": false, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Listado paginado de episodios",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "info": { "$ref": "#/components/schemas/Info" },
+                    "results": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/Episode" }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/episode/{id}": {
+      "get": {
+        "tags": ["Episode"],
+        "summary": "Obtener un único episodio",
+        "description": "Devuelve un único episodio según su id.",
+        "operationId": "getEpisodeById",
+        "parameters": [
+          { "name": "id", "in": "path", "description": "Id del episodio.", "required": true, "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Episodio encontrado",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Episode" } }
+            }
+          },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/episode/{ids}": {
+      "get": {
+        "tags": ["Episode"],
+        "summary": "Obtener múltiples episodios",
+        "description": "Devuelve varios episodios a partir de una lista de ids separados por coma, por ejemplo: /episode/1,2,3",
+        "operationId": "getMultipleEpisodes",
+        "parameters": [
+          { "name": "ids", "in": "path", "description": "Lista de ids separados por coma. Ej: 10,28", "required": true, "schema": { "type": "string" }, "example": "10,28" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Listado de episodios encontrados",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Episode" }
+                }
+              }
+            }
+          },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Info": {
+        "type": "object",
+        "properties": {
+          "count": { "type": "integer", "description": "Cantidad total de elementos en la respuesta.", "example": 826 },
+          "pages": { "type": "integer", "description": "Cantidad total de páginas.", "example": 42 },
+          "next": { "type": "string", "format": "uri", "nullable": true, "description": "Enlace a la siguiente página (si existe)." },
+          "prev": { "type": "string", "format": "uri", "nullable": true, "description": "Enlace a la página anterior (si existe)." }
+        }
+      },
+      "Character": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "description": "Id del personaje.", "example": 1 },
+          "name": { "type": "string", "description": "Nombre del personaje.", "example": "Rick Sanchez" },
+          "status": { "type": "string", "enum": ["Alive", "Dead", "unknown"], "description": "Estado del personaje." },
+          "species": { "type": "string", "description": "Especie del personaje." },
+          "type": { "type": "string", "description": "Tipo o subespecie del personaje." },
+          "gender": { "type": "string", "enum": ["Female", "Male", "Genderless", "unknown"], "description": "Género del personaje." },
+          "origin": { "$ref": "#/components/schemas/LocationRef" },
+          "location": { "$ref": "#/components/schemas/LocationRef" },
+          "image": { "type": "string", "format": "uri", "description": "Enlace a la imagen del personaje (300x300px)." },
+          "episode": {
+            "type": "array",
+            "description": "Lista de episodios en los que ha aparecido el personaje.",
+            "items": { "type": "string", "format": "uri" }
+          },
+          "url": { "type": "string", "format": "uri", "description": "Enlace al propio endpoint del personaje." },
+          "created": { "type": "string", "format": "date-time", "description": "Fecha de creación del registro en la base de datos." }
+        }
+      },
+      "LocationRef": {
+        "type": "object",
+        "description": "Referencia resumida a una ubicación (nombre y enlace).",
+        "properties": {
+          "name": { "type": "string", "example": "Earth" },
+          "url": { "type": "string", "format": "uri", "example": "https://rickandmortyapi.com/api/location/1" }
+        }
+      },
+      "Location": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "description": "Id de la ubicación.", "example": 1 },
+          "name": { "type": "string", "description": "Nombre de la ubicación.", "example": "Earth" },
+          "type": { "type": "string", "description": "Tipo de la ubicación.", "example": "Planet" },
+          "dimension": { "type": "string", "description": "Dimensión en la que se encuentra la ubicación.", "example": "Dimension C-137" },
+          "residents": {
+            "type": "array",
+            "description": "Lista de personajes vistos por última vez en esta ubicación.",
+            "items": { "type": "string", "format": "uri" }
+          },
+          "url": { "type": "string", "format": "uri", "description": "Enlace al propio endpoint de la ubicación." },
+          "created": { "type": "string", "format": "date-time", "description": "Fecha de creación del registro en la base de datos." }
+        }
+      },
+      "Episode": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "description": "Id del episodio.", "example": 1 },
+          "name": { "type": "string", "description": "Nombre del episodio.", "example": "Pilot" },
+          "air_date": { "type": "string", "description": "Fecha de emisión del episodio.", "example": "December 2, 2013" },
+          "episode": { "type": "string", "description": "Código del episodio.", "example": "S01E01" },
+          "characters": {
+            "type": "array",
+            "description": "Lista de personajes que aparecieron en el episodio.",
+            "items": { "type": "string", "format": "uri" }
+          },
+          "url": { "type": "string", "format": "uri", "description": "Enlace al propio endpoint del episodio." },
+          "created": { "type": "string", "format": "date-time", "description": "Fecha de creación del registro en la base de datos." }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": { "type": "string", "example": "Character not found" }
+        }
+      }
+    },
+    "responses": {
+      "NotFound": {
+        "description": "El recurso solicitado no fue encontrado.",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/Error" }
+          }
+        }
+      }
+    }
+  }
+}
